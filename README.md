@@ -4,6 +4,14 @@ Entrega 3 del proyecto de Desarrollo de Aplicaciones Web. La aplicación usa
 React, Vite, React Router y Supabase. Conserva el diseño, el logo y los estilos
 de la [Entrega 2](https://github.com/salro07co-ux/amac-web).
 
+[Aplicación publicada en Vercel](https://amac-react-nu.vercel.app/)
+
+## Integrantes y aportaciones
+
+- **Mauricio López** preparó la base del proyecto en React y Vite, la navegación, las rutas protegidas, el contexto de sesión y las pantallas de registro, acceso y recuperación. Agregó la reescritura de rutas de Vercel. [Base y acceso](https://github.com/jorgemauriciolopez-creator/amac-react/commit/d926283), [rutas en Vercel](https://github.com/jorgemauriciolopez-creator/amac-react/commit/be55a58)
+- **Salvador Rodríguez Coronado** desarrolló el flujo del candidato, desde la búsqueda de vacantes hasta sus solicitudes y favoritas. Agregó los estilos y el logo. [Flujo candidato](https://github.com/jorgemauriciolopez-creator/amac-react/commit/f984b46), [estilos](https://github.com/jorgemauriciolopez-creator/amac-react/commit/45f0b5d)
+- **Axel Machorro** desarrolló las pantallas de empresa y administración, la conexión con Supabase y los scripts del esquema y de los datos de prueba. [Pantallas de empresa y administración](https://github.com/jorgemauriciolopez-creator/amac-react/commit/d4dd4bd), [esquema y datos de prueba](https://github.com/jorgemauriciolopez-creator/amac-react/commit/1c44e9e)
+
 ## Ejecutar en local
 
 Usa Node.js 22.12 o superior.
@@ -72,14 +80,35 @@ erDiagram
   VACANTES ||--o{ FAVORITAS : se_guarda
 ```
 
-La base usa RLS para que cada candidato consulte sus propios datos y
-solicitudes, y cada empresa gestione sus vacantes y sus postulaciones
-recibidas. El esquema limita los permisos para impedir que una cuenta se
-cambie de rol o se apruebe por sí misma. Los logos se guardan en el bucket
-`logos-empresa` bajo la carpeta de la empresa. El público consulta las
-vacantes activas y un candidato conserva acceso a las vacantes a las que
-ya se postuló. Una restricción `unique` impide duplicar la combinación de
-vacante y candidato. Supabase Auth gestiona las contraseñas.
+### Políticas de seguridad por fila (RLS)
+
+Supabase usa el identificador de la sesión para decidir qué filas puede consultar o modificar cada cuenta. En el [esquema SQL](supabase/esquema.sql), `USING` filtra las filas existentes y `WITH CHECK` valida los datos que se van a guardar.
+
+| Tabla | Operación | Qué permite |
+| --- | --- | --- |
+| `perfiles` | Leer el perfil propio | Cada cuenta puede consultar la fila de su perfil. |
+| `perfiles` | Leer candidatos de la empresa | Una empresa puede consultar el perfil de quienes se postularon a sus propias vacantes. |
+| `perfiles` | Editar el perfil propio | Cada cuenta puede actualizar su perfil. Los permisos de columnas reservan el rol y la aprobación. |
+| `vacantes` | Leer vacantes activas | Cualquier visitante puede consultar las vacantes activas. |
+| `vacantes` | Leer vacantes propias | Cada empresa puede consultar sus publicaciones en cualquier estado. |
+| `vacantes` | Leer vacantes de una postulación | El candidato conserva acceso a las vacantes a las que se postuló, aunque cambien de estado. |
+| `vacantes` | Publicar | Una cuenta con rol empresa puede crear vacantes asociadas a su propio perfil. |
+| `vacantes` | Editar | Cada empresa puede editar sus vacantes y cambiar su estado. |
+| `solicitudes` | Leer solicitudes propias | El candidato puede consultar las solicitudes asociadas a su cuenta. |
+| `solicitudes` | Leer solicitudes recibidas | La empresa puede consultar las solicitudes de sus propias vacantes. |
+| `solicitudes` | Postularse | Un candidato aprobado puede enviar una solicitud a su nombre para una vacante activa. La solicitud empieza en `Enviada`. |
+| `solicitudes` | Cancelar | El candidato puede cambiar a `Cancelada` una solicitud propia que esté `Enviada` o `En revisión`. |
+| `solicitudes` | Actualizar como empresa | La empresa puede cambiar el estatus y la etapa de las solicitudes de sus vacantes que siguen sin cancelar. Los estatus permitidos son `Enviada`, `En revisión`, `Aceptada` y `Rechazada`. |
+| `favoritas` | Leer favoritas | El candidato ve las vacantes guardadas por su cuenta. |
+| `favoritas` | Guardar favoritas | Una cuenta con rol candidato puede guardar una vacante activa como favorita propia. |
+| `favoritas` | Quitar favoritas | El candidato puede quitar una vacante de sus favoritas. |
+| `storage.objects` | Consultar archivos de logos | La empresa puede consultar sus archivos en la carpeta que corresponde a su cuenta dentro de `logos-empresa`. |
+| `storage.objects` | Subir un logo | Cada empresa puede subir archivos al bucket `logos-empresa` dentro de su propia carpeta. |
+| `storage.objects` | Reemplazar un logo | La empresa puede reemplazar un logo dentro de su propia carpeta. |
+| `storage.objects` | Borrar un logo | La empresa puede borrar sus propios archivos del bucket de logos. |
+
+La combinación única de vacante y candidato evita postulaciones duplicadas.
+Supabase Auth gestiona las contraseñas. El bucket de logos permite mostrar las imágenes en el catálogo público. El panel de aprobación usa funciones que verifican el rol de administrador antes de consultar o aprobar candidatos.
 
 ## Requisitos
 
