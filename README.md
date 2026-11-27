@@ -62,6 +62,9 @@ Clave de demostración para las cuatro cuentas: `AmacDemo2026`.
 | Empresa | empresa-amac@example.com |
 
 La contraseña de estas tres cuentas de demostración es `AMAC-Ensayo-8vK4mP26`.
+
+Para probar una postulación nueva en Vercel, abre [Recepcionista](https://amac-react-nu.vercel.app/vacantes/2) con el candidato aprobado. La empresa puede ver esa postulación en **Solicitudes**. Con el candidato pendiente, la misma vacante muestra el aviso de aprobación de AMAC.
+
 Para reproducir la semilla, crea también `admin-amac@example.com` con su propia
 contraseña. Estas cuentas se usan con datos ficticios. El correo integrado de
 Supabase solo entrega mensajes a integrantes autorizados de la organización.
