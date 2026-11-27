@@ -70,6 +70,10 @@ Para probar la recuperación con un buzón externo hace falta configurar SMTP.
 
 ## Base de datos
 
+![Captura del Schema Visualizer de Supabase con las relaciones entre perfiles, vacantes, solicitudes y favoritas](docs/schema-visualizer.png)
+
+*Esquema `public` del proyecto `amac-pruebas` en Supabase.*
+
 ```mermaid
 erDiagram
   AUTH_USERS ||--|| PERFILES : tiene
